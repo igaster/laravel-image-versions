@@ -1,0 +1,32 @@
+{
+    "name": "igaster/laravel-image-versions",
+	"description": "Description",
+    "keywords": ["laravel-5.x", "package"],
+    "license": "MIT",
+    "homepage": "https://github.com/igaster/laravel-image-versions.git",
+    "authors": [
+        {
+            "name": "Giannis Gasteratos",
+            "email": "igasteratos@gmail.com"
+        }
+    ],	
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "5.*",
+        "igaster/eloquent-decorator": "~1.0",
+        "intervention/image": "^2.3"
+    },
+    "require-dev": {
+        "illuminate/database": "~5.2",
+        "orchestra/testbench": "~3.0", 
+        "vlucas/phpdotenv": "~2.0",
+        "phpunit/phpunit": "~4.0"
+    },     
+    "autoload": {
+        "psr-4" : {
+            "igaster\\imageVersions\\"        : "src/",
+            "igaster\\imageVersions\\Tests\\" : "tests/"            
+        }
+    },
+    "minimum-stability": "stable"
+}
