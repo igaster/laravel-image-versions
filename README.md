@@ -61,7 +61,9 @@ class v200x200 extends \igaster\imageVersions\AbstractTransformation{
 
 Very simple! Call the `version()` method on your Eloquent model. We will use a `Photo` class as an example Eloquent model that stores an image filename:
 
-	$photo = Photo::find(1)->version(v200x200::class); // get the `v200x200' version of your Photo model
+```php
+$photo = Photo::find(1)->version(v200x200::class); // get the `v200x200' version of your Photo model
+```
 
 Here's what is going to happen:
 
