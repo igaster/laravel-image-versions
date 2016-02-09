@@ -1,18 +1,18 @@
 <?php namespace igaster\imageVersions\Transformations;
 
-// Helper Transformatin. Overide this and define $widht and $height
-// Scales + Crops an image to fit in a Rectangle
+// Helper Transformation: Scales + Crops an image to fit in a Rectangle
+// Overide this and define $widht and $height
 
 use Imagick;
 
-class ScaleAndCrop implements \igaster\imageVersions\TransformationInterface{
+class ScaleAndCrop extends \igaster\imageVersions\AbstractTransformation{
 
     // Redifine dimensions in child class
-    public static $width = 100;
-    public static $height = 100;
+    public $width = 100;
+    public $height = 100;
 
     // Scale Image to Fill Box - Crop outside of Box
-    public static function scaleAndCrop(Imagick $image, $width, $height){
+    public function scaleAndCrop(Imagick $image, $width, $height){
 
         $iHeight = $image->getImageHeight();
         $iWidth = $image->getImageWidth();
@@ -35,9 +35,8 @@ class ScaleAndCrop implements \igaster\imageVersions\TransformationInterface{
         return $image;
     }
 
-    // Perform the manipulation
-    public static function applyTransformations(\Imagick $image){
-        $image = self::scaleAndCrop($image, static::$width, static::$height);
+    public function apply(\Imagick $image){
+       $this->scaleAndCrop($image, $this->width, $this->height);
     }
 
 }

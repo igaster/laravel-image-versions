@@ -1,19 +1,19 @@
 <?php namespace igaster\imageVersions\Transformations;
 
-// Helper Transformatin. Overide this and define $widht and $height
-// Scales + Distorts an image to fit in a Rectangle
+// Helper Transformation: Scales + Distorts an image to fit in a Rectangle
+// Overide this and define $widht and $height
 
 use Imagick;
 
-class Thumbnail implements \igaster\imageVersions\TransformationInterface{
+class Thumbnail extends \igaster\imageVersions\AbstractTransformation{
 
     // Redifine dimensions in child class
-    public static $width = 100;
-    public static $height = 100;
+    public $width = 100;
+    public $height = 100;
 
     // Perform the manipulation
-    public static function applyTransformations(\Imagick $image){
-        $image->thumbnailImage(static::$width, static::$height);
+    public function apply(\Imagick $image){
+        $image->thumbnailImage($this->width, $this->height);
     }
 
 }

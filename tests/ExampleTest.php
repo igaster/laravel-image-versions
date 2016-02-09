@@ -63,7 +63,7 @@ class ExampleTest extends TestCaseWithDatbase
         });
 
         Photo::create(['id' => 1, 'filename' => 'image1.jpg']);
-        Photo::create(['id' => 2, 'filename' => 'image2.jpg']);
+        Photo::create(['id' => 2, 'filename' => 'invalid.txt.jpg']);
         Photo::create(['id' => 3, 'filename' => 'subfolder/image3.jpg']);
     }
 
@@ -119,6 +119,26 @@ class ExampleTest extends TestCaseWithDatbase
 
         $this->assertFileExists($image1->absolutePath());
         $this->assertFileExists($image3->absolutePath());
+    }
+
+    public function testInvalidImage() {
+        $this->setExpectedException(Exception::class);
+        Photo::find(2)->version(v200x200::class);
+    }
+
+    public function testNamespacing() {
+        $photo = Photo::find(1);
+        $version = $photo->version(v200x200::class);
+        $this->assertEquals('igaster\imageVersions\Tests\App\Transformations\v200x200', $version->className());
+
+        $photo->transformationNamespace = 'igaster\imageVersions\Tests\App\Transformations';
+        $version = $photo->version('v200x200');
+        $this->assertEquals('igaster\imageVersions\Tests\App\Transformations\v200x200', $version->className());
+    }
+
+    public function testInvalidTransformation() {
+        $this->setExpectedException(Exception::class);
+        Photo::find(1)->version('invalidTransformation');
     }
 
 }

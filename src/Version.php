@@ -14,11 +14,11 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
 class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, QueueableEntity, UrlRoutable {
     use EloquentDecoratorTrait;
 
-    public $transformation = null;
+    public $transformationClass = null;
 
-    public static function apply(Eloquent $image, $transformation){
+    public static function apply(Eloquent $image, $transformationClass){
       $version = static::wrap($image);
-      $version->transformation = $transformation;
+      $version->transformationClass = $transformationClass;
 
       if(!file_exists($version->absolutePath()))
         $version->buildNewImage();
@@ -26,8 +26,24 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       return $version;
     }
 
+    public function className(){
+      $className = $this->transformationClass;
+
+      if (class_exists($className))
+        return $className;
+
+      if(isset($this->object->transformationNamespace) && !empty($namespace = $this->object->transformationNamespace)){
+        $className =  sprintf("%s\%s",$namespace, $className);
+      }
+
+      if (class_exists($className))
+        return $className;
+
+      throw new \Exception("Image Transformation: '{$className}' does not exists", 1);
+    }
+
     public function versionName(){
-      $function = new \ReflectionClass($this->transformation);
+      $function = new \ReflectionClass($this->className());
       return $function->getShortName();
     }
 
@@ -47,26 +63,28 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       return public_path($this->relativePath());
     }
 
-  	public function buildNewImage(Imagick $image = null){  
+    public function url(){
+      return $this->relativePath();
+    }
 
-  		if(empty($image)){
-        $image =new \Imagick();
-        $image->readImage($this->object->absolutePath());
-      }
+    public function buildNewImage(){  
 
-  		$targetFile = $this->absolutePath();
+      $sourceFile = $this->object->absolutePath();
+      $targetFile = $this->absolutePath();
+      $targetPath = dirname($targetFile);
 
-      $dirName = dirname($targetFile);
-      if (!\File::isDirectory($dirName))
-          \File::makeDirectory($dirName, 0777, true);
+      $image =new \Imagick();
+      $image->readImage($sourceFile);
 
-  		$class_name = $this->transformation;
-          $class_name::applyTransformations($image);
+      $transformationClass = $this->className();
+      $transformation = new $transformationClass();
 
-      $image->setImageCompressionQuality(66);
-      $image->setImageCompression(\Imagick::COMPRESSION_JPEG);
-      $image->stripImage();
+      $transformation->apply($image);
+      $transformation->onSaving($image);
+      $transformation->onSaved($this);
 
+      if (!\File::isDirectory($targetPath))
+          \File::makeDirectory($targetPath, 0777, true);
       $image->writeImage($targetFile);    
   	}
 
