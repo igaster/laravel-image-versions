@@ -42,7 +42,7 @@ class Photo extends Eloquent {
 
 #### 2. Create your Transformation classes:
 
-You can create any number of versions of a single image with the use of Imagick. To define a version you have to create a  Transformation class that extends the `AbstractTransformation` and implement the `apply()` method. You will receive an Imagick object, where you can perform any image-operations.
+You can create any number of versions of a single image. To define a version you have to create a  Transformation class that extends the `AbstractTransformation` and implement the `apply()` method. You will receive an Imagick object, where you can perform any operations to your image.
 
 A short example of a trasformation class:
 
@@ -59,7 +59,7 @@ class v200x200 extends \igaster\imageVersions\AbstractTransformation{
 
 #### 3. Request an image version
 
-Very simple! Call the `version()` method on your Eloquent model. We will use a `Photo` class as an example Eloquent model that stores an image filename:
+Very simple! Call the `version()` method on your Eloquent model.  (For the following example suppose that `Photo` class is an Eloquent model that stores an image's filename)
 
 ```php
 $photo = Photo::find(1)->version(v200x200::class); // get the `v200x200' version of your Photo model
@@ -92,7 +92,7 @@ $photo->update(['key' => 'value']);	// Call any Eloquent's methods
 $photo->myMehod();					// Call methods that you have defined in the Photo class
 ```
 
-Ypu can find more information about the decorator used at [igaster/eloquent-decorator](https://github.com/igaster/eloquent-decorator)
+You can find more information about the decorator used at [igaster/eloquent-decorator](https://github.com/igaster/eloquent-decorator)
 
 ## ToDo:
 - overide default paths
