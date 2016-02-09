@@ -13,23 +13,6 @@ class ExampleTest extends TestCaseWithDatbase
 {
 
     // -----------------------------------------------
-    //   add Service Providers & Facades
-    // -----------------------------------------------
-
-    protected function getPackageProviders($app) {
-        return [
-            Intervention\Image\ImageServiceProvider::class,
-        ];
-    }
-
-
-    protected function getPackageAliases($app) {
-        return [
-            'Image' => Intervention\Image\Facades\Photo::class,
-        ];
-    }
-
-    // -----------------------------------------------
     //   Global Setup(Run Once)
     // -----------------------------------------------
 
