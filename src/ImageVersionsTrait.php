@@ -16,8 +16,8 @@ trait ImageVersionsTrait
 		}
 	*/
 
-	public function url(){ // alias to relativePath)()
-		return $this->relativePath();
+	public function url(){
+		return '/'.$this->relativePath();
 	}
 
 	public function absolutePath(){

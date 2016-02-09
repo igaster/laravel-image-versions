@@ -65,7 +65,7 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
     }
 
     public function url(){
-      return $this->relativePath();
+      return '/'.$this->relativePath();
     }
 
     public function buildNewImage(){  

@@ -77,6 +77,9 @@ class ExampleTest extends TestCaseWithDatbase
     public function testPaths() {
         $this->assertEquals('v200x200/image1.jpg',              Photo::find(1)->version(v200x200::class)->relativePath());
         $this->assertEquals('subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->relativePath());
+
+        $this->assertEquals('/v200x200/image1.jpg',              Photo::find(1)->version(v200x200::class)->url());
+        $this->assertEquals('/subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->url());
     }
 
     public function testCreateFolders() {
