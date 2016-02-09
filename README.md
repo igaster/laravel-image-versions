@@ -18,18 +18,26 @@ This package decorates any Eloquent Model that holds a representation of an Imag
 
 #### 1. Setup your model:
 
-Your model should use the `ImageVersionsTrait`
+Your model should use the `ImageVersionsTrait`. For example:
 
 ```php
-use \igaster\imageVersions\ImageVersionsTrait;
+class Photo extends Eloquent {
+   use \igaster\imageVersions\ImageVersionsTrait;
+   //...
+}
 ```
 
 The only requirement for your model is to define the `relativePath()` method which will return the path to the file (relative to public folder). For example if you place your images in a `Photos` folder and store the naked filename in the `filename` attribute then your implementatin could be:
 
 ```php
-public function relativePath(){
-    return 'Photos\'.$this->filename;  // example output: "Photos\image1.jpg" 
-}                                      // No beggining or trailing slashes
+class Photo extends Eloquent {
+
+    public function relativePath(){        // No starting or trailing slashes
+        return 'Photos\'.$this->filename;  // example output: "Photos\image1.jpg" 
+    }
+
+}
+
 ```
 
 #### 2. Create your Transformation classes:
