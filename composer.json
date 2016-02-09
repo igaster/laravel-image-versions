@@ -1,7 +1,7 @@
 {
     "name": "igaster/laravel-image-versions",
-	"description": "Description",
-    "keywords": ["laravel-5.x", "package"],
+	"description": "Enchace your models to produce different versions of any image (eg for thumbnail/watermark etc)",
+    "keywords": ["laravel-5.x", "image versions", "image resize", "image crop", "imagick"],
     "license": "MIT",
     "homepage": "https://github.com/igaster/laravel-image-versions.git",
     "authors": [
@@ -13,8 +13,7 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/support": "5.*",
-        "igaster/eloquent-decorator": "~1.0",
-        "intervention/image": "^2.3"
+        "igaster/eloquent-decorator": "~1.0"
     },
     "require-dev": {
         "illuminate/database": "~5.2",

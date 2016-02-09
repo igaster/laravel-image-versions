@@ -4,13 +4,9 @@
 [![Build Status](https://img.shields.io/travis/igaster/laravel-image-versions.svg)](https://travis-ci.org/igaster/laravel-image-versions)
 [![Codecov](https://img.shields.io/codecov/c/github/igaster/laravel-image-versions.svg)](https://codecov.io/github/igaster/laravel-image-versions)
 
-## Instructions
-
-Enchace your models to auto-create different versions of any image (eg for thumbnail)
-
-
 ## How it works
 
+Enchace your models to produce different versions of any image (eg for thumbnail/watermark etc). Produced images are saved in separate subfolders for future requests. You only have to define some operations on the Image. File management and caching are handled for you.
 
 ## Installation
 
