@@ -8,6 +8,7 @@ use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Contracts\Queue\QueueableEntity;
 use ArrayAccess;
 use JsonSerializable;
+use Imagick;
 
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
@@ -73,7 +74,7 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       $targetFile = $this->absolutePath();
       $targetPath = dirname($targetFile);
 
-      $image =new \Imagick();
+      $image = new Imagick();
       $image->readImage($sourceFile);
 
       $transformationClass = $this->className();
