@@ -83,3 +83,8 @@ $photo->myMehod();					// Call methods that you have defined in the Photo class
 ```
 
 Ypu can find more information about the decorator used at [igaster/eloquent-decorator](https://github.com/igaster/eloquent-decorator)
+
+## ToDo:
+- overide default paths
+- switch to intervention (?)
+- Anything else? Please leave your requests.
