@@ -79,9 +79,51 @@ $photo->url() // the url to your image (eg /Photos/v200x200/filename.jpg)
 $photo->relativePath() // path relative to public  (eg Photos/v200x200/filename.jpg)
 $photo->absolutePath() // absolute path. You can perform file operations on this
 ```
-## Decorator Pattern: You still have your models
 
-Morever the `$photo` object is a **decorator** that wraps your original Photo model. This means that you can perform ANY operation you could perform on your original model.
+## Saving lifecycle
+
+Two callbacks will be fired from your Transformation class before and after saving the new image. Your can implement these methods if in your classes if you need extra functionality:
+
+```php
+class v200x200 extends \igaster\imageVersions\AbstractTransformation{
+
+	/**
+     * This callback is executed before the image is saved. You can override this
+     * if you want to prepere the image for saving (eg set file format etc). 
+     * 
+     * @param  Imagick $image
+     * @return null
+     */	
+    public function onSaving(Imagick $image){
+      $image->setImageCompressionQuality(66);
+      $image->setImageCompression(\Imagick::COMPRESSION_JPEG);
+      $image->stripImage();    	
+    }
+
+	/**
+     * This callback is executed when the image is sucessfuly saved.
+     * It receives the decorated (Version) Eloquent model that encapsulates the Image. 
+     * You can perform any post-save actions here (eg update your db / fire events etc) 
+     * 
+     * @param  Version $version (Your original Eloquent model decorated)
+     * @return null
+     */	
+    public function onSaved(Version $image){
+    	/* examples:
+			$image->relativePath();  // new image relative path , alias to $image->url()
+			$image->absolutePath();  // new image absolute
+			$image->id;              // Access your original Eloquent model's attributes/methods
+		*/
+    }
+
+}
+```
+
+Take a look at the [AbstractTransformation](https://github.com/igaster/laravel-image-versions/blob/master/src/AbstractTransformation.php) to see how saving an image is handled by default. Note that you should not write the image to a file by yourself (`writeImage('...')`), since this is already handled for you.
+
+## Decorator Pattern: You still have your models!
+
+Morever the return value of the `version()` funtion (instance of [Version](https://github.com/igaster/laravel-image-versions/blob/master/src/Version.php)) is **decorator** that wraps your original Photo model. This means that you can perform ANY operation you could perform on your original model.
 
 ```php
 // Decorator pattern applied.
