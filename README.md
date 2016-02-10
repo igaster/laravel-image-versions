@@ -80,6 +80,31 @@ $photo->relativePath() // path relative to public  (eg Photos/v200x200/filename.
 $photo->absolutePath() // absolute path. You can perform file operations on this
 ```
 
+## Using Aliases
+
+You can define the default namespace of your Transformation classes in your model:
+
+```php
+class Photo extends Eloquent
+{
+	use \igaster\imageVersions\ImageVersionsTrait;
+
+    public $transformationNamespace = 'Namespace\Of\Transformations\Classes';
+}
+```
+
+Now you have the option to use the Transformation class shortname as an alias insted of the full nampespaced class name. eg:
+
+```php
+$photo = Photo::find(1);
+
+// The following are equivalent:
+$thumbnail = $photo->version(Namespace\Of\Transformations\Classes\v200x200::class);
+$thumbnail = $photo->version('v200x200');
+```
+
+This is quite usefull when you are using image versions inside your Blade files.
+
 ## Saving lifecycle
 
 Two callbacks will be fired from your Transformation class before and after saving the new image. Your can implement these methods if in your classes if you need extra functionality:
