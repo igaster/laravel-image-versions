@@ -93,7 +93,7 @@ class Photo extends Eloquent
 }
 ```
 
-Now you have the option to use the Transformation class shortname as an alias insted of the full nampespaced class name. eg:
+Now you have the option to use the Transformation class shortname as an alias instead of the full nampespaced classname. eg:
 
 ```php
 $photo = Photo::find(1);
