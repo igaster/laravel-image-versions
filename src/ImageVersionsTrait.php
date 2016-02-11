@@ -32,6 +32,10 @@ trait ImageVersionsTrait
 	}
 
 	public function version($transformation, ...$params){
-		return \igaster\imageVersions\Version::decorate($this, $transformation, $this->callback_before, $params);
+		return \igaster\imageVersions\Version::decorate($this, $transformation, false, $this->callback_before, $params);
+	}
+
+	public function rebuildVersion($transformation, ...$params){
+		return \igaster\imageVersions\Version::decorate($this, $transformation, true, $this->callback_before, $params);
 	}
 }

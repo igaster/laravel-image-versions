@@ -18,13 +18,19 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
     public $transformationClass = null;
     public $callbacks = [];
 
-    public static function decorate(Eloquent $image, $transformationClass, $callbacks=[], $params=[]){
+    public static function decorate(Eloquent $image, $transformationClass, $forceRebuild = false, $callbacks=[], $params=[]){
 
       $version = static::wrap($image);
       $version->transformationClass = $transformationClass;
       $version->callbacks = $callbacks;
 
-      if(!file_exists($version->absolutePath()))
+      $path = $version->absolutePath();
+
+      if($forceRebuild && file_exists($path)){
+        File::delete($path);
+      }
+
+      if(!file_exists($path))
         $version->buildNewImage($params);
 
       return $version;

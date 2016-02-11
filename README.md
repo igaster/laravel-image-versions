@@ -79,6 +79,8 @@ $thumb->relativePath() // path relative to public  (eg Photos/v200x200/filename.
 $thumb->absolutePath() // absolute path. You can perform file operations on this
 ```
 
+If you want to force rebuilding the new image even if it has been cached before you can call `rebuildVersion()` instead of `version()` 
+
 ## Passing Parameters
 
 You may pass any number of parameters when you request a version of an Image:
