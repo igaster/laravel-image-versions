@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\QueueableEntity;
 use ArrayAccess;
 use JsonSerializable;
 use Imagick;
+use File;
 
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
@@ -101,8 +102,8 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       $transformation->onSaving($image);
       $transformation->onSaved($this);
 
-      if (!\File::isDirectory($targetPath))
-          \File::makeDirectory($targetPath, 0777, true);
+      if (!File::isDirectory($targetPath))
+          File::makeDirectory($targetPath, 0777, true);
       $image->writeImage($targetFile);    
   	}
 
