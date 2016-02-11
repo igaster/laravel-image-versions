@@ -16,11 +16,13 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
     use EloquentDecoratorTrait;
 
     public $transformationClass = null;
+    public $callbacks = [];
 
-    public static function apply(Eloquent $image, $transformationClass, $params=[]){
+    public static function decorate(Eloquent $image, $transformationClass, $callbacks=[], $params=[]){
 
       $version = static::wrap($image);
       $version->transformationClass = $transformationClass;
+      $version->callbacks = $callbacks;
 
       if(!file_exists($version->absolutePath()))
         $version->buildNewImage($params);
@@ -83,6 +85,10 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
 
       if (!method_exists($transformation, 'apply')) {
         throw new \igaster\imageVersions\Exceptions\missingApplyMethod($this->versionName());
+      }
+
+      foreach ($this->callbacks as $callback) {
+        $callback[0]($image, ...$callback[1]);
       }
 
       $transformation->apply($image, ...$params);

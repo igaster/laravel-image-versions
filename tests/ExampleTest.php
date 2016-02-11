@@ -3,7 +3,6 @@
 use igaster\imageVersions\Tests\TestCase\TestCaseWithDatbase;
 use Orchestra\Testbench\TestCase;
 
-
 use igaster\imageVersions\Tests\App\Photo;
 use igaster\imageVersions\Version;
 
@@ -42,7 +41,7 @@ class ExampleTest extends TestCaseWithDatbase
         });
 
         // -- Set  migrations
-        \Schema::create('photos', function ($table) {
+        Schema::create('photos', function ($table) {
             $table->increments('id');
             $table->string('filename');
         });
@@ -53,7 +52,7 @@ class ExampleTest extends TestCaseWithDatbase
     }
 
     public function _tearDown() {
-        \Schema::drop('photos');
+        Schema::drop('photos');
         parent::teadDown();
     }
 
@@ -65,6 +64,10 @@ class ExampleTest extends TestCaseWithDatbase
         foreach (Photo::all() as $image) {
             $this->assertFileExists($image->absolutePath());
         }
+
+        File::deleteDirectory(public_path('subfolder/v200x200'));
+        File::deleteDirectory(public_path('v200x200'));
+        File::deleteDirectory(public_path('vParameters'));
     }
 
     public function test_Decoratable() {
@@ -85,8 +88,8 @@ class ExampleTest extends TestCaseWithDatbase
     }
 
     public function test_Create_Folders() {
-        \File::deleteDirectory(public_path('subfolder/v200x200'));
-        \File::deleteDirectory(public_path('v200x200'));
+        File::deleteDirectory(public_path('subfolder/v200x200'));
+        File::deleteDirectory(public_path('v200x200'));
 
         $this->assertFileNotExists(public_path('v200x200'));
         $this->assertFileNotExists(public_path('subfolder/v200x200'));
@@ -99,8 +102,8 @@ class ExampleTest extends TestCaseWithDatbase
     }
 
     public function test_Create_Files() {
-        \File::deleteDirectory(public_path('subfolder/v200x200'));
-        \File::deleteDirectory(public_path('v200x200'));
+        File::deleteDirectory(public_path('subfolder/v200x200'));
+        File::deleteDirectory(public_path('v200x200'));
 
         $image1 = Photo::find(1)->version(v200x200::class);
         $image3 = Photo::find(3)->version(v200x200::class);
@@ -130,19 +133,19 @@ class ExampleTest extends TestCaseWithDatbase
     }
 
     public function test_Parameters() {
-        \File::deleteDirectory(public_path('vParameters'));
+        File::deleteDirectory(public_path('vParameters'));
         $this->expectOutputString('1,2,3');
         Photo::find(1)->version(vParameters::class,1,2,3);
     }
 
     public function test_Parameters_Default_Value() {
-        \File::deleteDirectory(public_path('vParameters'));
+        File::deleteDirectory(public_path('vParameters'));
         $this->expectOutputString('1,2,99');
         Photo::find(1)->version(vParameters::class,1,2);
     }
 
     public function test_Retreive_Saved_File_Instead_Of_Creating_New() {
-        \File::deleteDirectory(public_path('vParameters'));
+        File::deleteDirectory(public_path('vParameters'));
         Photo::find(1)->version(vParameters::class);
         $this->expectOutputString('');
         Photo::find(1)->version(vParameters::class, 'Image Created!');
@@ -151,6 +154,33 @@ class ExampleTest extends TestCaseWithDatbase
     public function test_missing_apply_method() {
         $this->setExpectedException(igaster\imageVersions\Exceptions\missingApplyMethod::class);
         Photo::find(1)->version(vMissingMethod::class);
+    }
+
+    public function test_callback() {
+        File::deleteDirectory(public_path('v200x200'));
+        $this->expectOutputString('OK');
+        Photo::find(1)->beforeTransformation(function(\Imagick $image){
+            echo "OK";
+        })->version(v200x200::class);
+    }
+
+
+    public function test_callback_parameters() {
+        File::deleteDirectory(public_path('v200x200'));
+        $this->expectOutputString('1,2');
+        Photo::find(1)->beforeTransformation(function(\Imagick $image, $a, $b){
+            echo "$a,$b";
+        },1,2)->version(v200x200::class);
+    }
+
+    public function test_multiple_callback() {
+        File::deleteDirectory(public_path('v200x200'));
+        $this->expectOutputString('AB');
+        Photo::find(1)->beforeTransformation(function(\Imagick $image){
+            echo "A";
+        })->beforeTransformation(function(\Imagick $image){
+            echo "B";
+        })->version(v200x200::class);
     }
 
 }

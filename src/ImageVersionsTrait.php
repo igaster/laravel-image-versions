@@ -24,7 +24,14 @@ trait ImageVersionsTrait
 		return public_path($this->relativePath());
 	}
 
+	private $callback_before = [];
+
+	public function beforeTransformation($callback, ...$params){
+		$this->callback_before[] = [$callback, $params];
+		return $this;
+	}
+
 	public function version($transformation, ...$params){
-		return \igaster\imageVersions\Version::apply($this, $transformation, $params);
+		return \igaster\imageVersions\Version::decorate($this, $transformation, $this->callback_before, $params);
 	}
 }

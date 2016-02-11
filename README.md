@@ -163,6 +163,25 @@ class v200x200 extends \igaster\imageVersions\AbstractTransformation{
 
 Take a look at the [AbstractTransformation](https://github.com/igaster/laravel-image-versions/blob/master/src/AbstractTransformation.php) to see how saving an image is handled by default. Note that you should not write the image to a file by yourself (`writeImage('...')`), since this is already handled for you.
 
+## Custom Callbacks
+
+You can define any number of callback functions that will be executed BEFORE your Transformation is applied. To set your callbacks call `beforeTransformation()` from your Eloquent model, before calling the `version()` method:
+
+```php
+$thumb = $photo->beforeTransformation(function(\Imagick $image){
+    $image->cropImage(200, 200, 0, 0);
+})->version(vGrayscale::class);
+``` 
+Usefull if you want to peform some preprocessing. You can chain any number of `beforeTransformation()` calls. 
+
+Additionaly you can pass your own parameters to your callbacks: 
+
+```php
+$thumb = $photo->beforeTransformation(function(\Imagick $image, $width, $height){
+    $image->cropImage($width, $height, 0, 0);
+}, 200, 200)->version(vGrayscale::class);  // Now the crop size is not hardcoded!
+``` 
+
 ## Decorator Pattern: You still have your models!
 
 Morever the return value of the `version()` funtion (instance of [Version](https://github.com/igaster/laravel-image-versions/blob/master/src/Version.php)) is **decorator** that wraps your original Photo model. This means that you can perform ANY operation you could perform on your original model.
