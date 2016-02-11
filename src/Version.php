@@ -17,12 +17,13 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
 
     public $transformationClass = null;
 
-    public static function apply(Eloquent $image, $transformationClass){
+    public static function apply(Eloquent $image, $transformationClass, $params=[]){
+
       $version = static::wrap($image);
       $version->transformationClass = $transformationClass;
 
       if(!file_exists($version->absolutePath()))
-        $version->buildNewImage();
+        $version->buildNewImage($params);
 
       return $version;
     }
@@ -40,7 +41,7 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       if (class_exists($className))
         return $className;
 
-      throw new \Exception("Image Transformation: '{$className}' does not exists", 1);
+      throw new \igaster\imageVersions\Exceptions\TransformationNotFound($className);
     }
 
     public function versionName(){
@@ -68,8 +69,7 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       return '/'.$this->relativePath();
     }
 
-    public function buildNewImage(){  
-
+    public function buildNewImage($params = []){        
       $sourceFile = $this->object->absolutePath();
       $targetFile = $this->absolutePath();
       $targetPath = dirname($targetFile);
@@ -80,7 +80,12 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       $transformationClass = $this->className();
       $transformation = new $transformationClass();
 
-      $transformation->apply($image);
+
+      if (!method_exists($transformation, 'apply')) {
+        throw new \igaster\imageVersions\Exceptions\missingApplyMethod($this->versionName());
+      }
+
+      $transformation->apply($image, ...$params);
       $transformation->onSaving($image);
       $transformation->onSaved($this);
 

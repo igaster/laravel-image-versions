@@ -12,7 +12,7 @@ abstract class AbstractTransformation {
      * @param  Imagick $image
      * @return null
      */	
-    abstract public function apply(Imagick $image);
+    // abstract public function apply(Imagick $image);
 
 
 	/**

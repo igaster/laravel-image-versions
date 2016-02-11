@@ -8,6 +8,8 @@ use igaster\imageVersions\Tests\App\Photo;
 use igaster\imageVersions\Version;
 
 use igaster\imageVersions\Tests\App\Transformations\v200x200;
+use igaster\imageVersions\Tests\App\Transformations\vParameters;
+use igaster\imageVersions\Tests\App\Transformations\vMissingMethod;
 
 class ExampleTest extends TestCaseWithDatbase
 {
@@ -59,13 +61,13 @@ class ExampleTest extends TestCaseWithDatbase
     //  Tests
     // -----------------------------------------------
 
-    public function testSetup() {
+    public function test_Setup() {
         foreach (Photo::all() as $image) {
             $this->assertFileExists($image->absolutePath());
         }
     }
 
-    public function testDecoratable() {
+    public function test_Decoratable() {
         $image = Photo::find(3);
         $this->assertInstanceOf(Photo::class, $image);
         $version = $image->version(v200x200::class);
@@ -74,7 +76,7 @@ class ExampleTest extends TestCaseWithDatbase
         $this->assertEquals('v200x200', $version->versionName());
     }
 
-    public function testPaths() {
+    public function test_Paths() {
         $this->assertEquals('v200x200/image1.jpg',              Photo::find(1)->version(v200x200::class)->relativePath());
         $this->assertEquals('subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->relativePath());
 
@@ -82,7 +84,7 @@ class ExampleTest extends TestCaseWithDatbase
         $this->assertEquals('/subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->url());
     }
 
-    public function testCreateFolders() {
+    public function test_Create_Folders() {
         \File::deleteDirectory(public_path('subfolder/v200x200'));
         \File::deleteDirectory(public_path('v200x200'));
 
@@ -96,7 +98,7 @@ class ExampleTest extends TestCaseWithDatbase
         $this->assertFileExists(public_path('subfolder/v200x200'));
     }
 
-    public function testCreateFiles() {
+    public function test_Create_Files() {
         \File::deleteDirectory(public_path('subfolder/v200x200'));
         \File::deleteDirectory(public_path('v200x200'));
 
@@ -107,12 +109,12 @@ class ExampleTest extends TestCaseWithDatbase
         $this->assertFileExists($image3->absolutePath());
     }
 
-    public function testInvalidImage() {
+    public function test_Invalid_Image() {
         $this->setExpectedException(Exception::class);
         Photo::find(2)->version(v200x200::class);
     }
 
-    public function testNamespacing() {
+    public function test_Namespacing() {
         $photo = Photo::find(1);
         $version = $photo->version(v200x200::class);
         $this->assertEquals('igaster\imageVersions\Tests\App\Transformations\v200x200', $version->className());
@@ -122,9 +124,33 @@ class ExampleTest extends TestCaseWithDatbase
         $this->assertEquals('igaster\imageVersions\Tests\App\Transformations\v200x200', $version->className());
     }
 
-    public function testInvalidTransformation() {
-        $this->setExpectedException(Exception::class);
+    public function test_Invalid_Transformation() {
+        $this->setExpectedException(igaster\imageVersions\Exceptions\TransformationNotFound::class);
         Photo::find(1)->version('invalidTransformation');
+    }
+
+    public function test_Parameters() {
+        \File::deleteDirectory(public_path('vParameters'));
+        $this->expectOutputString('1,2,3');
+        Photo::find(1)->version(vParameters::class,1,2,3);
+    }
+
+    public function test_Parameters_Default_Value() {
+        \File::deleteDirectory(public_path('vParameters'));
+        $this->expectOutputString('1,2,99');
+        Photo::find(1)->version(vParameters::class,1,2);
+    }
+
+    public function test_Retreive_Saved_File_Instead_Of_Creating_New() {
+        \File::deleteDirectory(public_path('vParameters'));
+        Photo::find(1)->version(vParameters::class);
+        $this->expectOutputString('');
+        Photo::find(1)->version(vParameters::class, 'Image Created!');
+    }
+
+    public function test_missing_apply_method() {
+        $this->setExpectedException(igaster\imageVersions\Exceptions\missingApplyMethod::class);
+        Photo::find(1)->version(vMissingMethod::class);
     }
 
 }

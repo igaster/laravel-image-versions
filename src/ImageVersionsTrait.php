@@ -24,7 +24,7 @@ trait ImageVersionsTrait
 		return public_path($this->relativePath());
 	}
 
-	public function version($transformation){
-		return \igaster\imageVersions\Version::apply($this, $transformation);
+	public function version($transformation, ...$params){
+		return \igaster\imageVersions\Version::apply($this, $transformation, $params);
 	}
 }

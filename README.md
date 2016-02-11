@@ -62,7 +62,8 @@ class v200x200 extends \igaster\imageVersions\AbstractTransformation{
 Very simple! Call the `version()` method on your Eloquent model.  (For the following example suppose that `Photo` class is an Eloquent model that stores an image's filename)
 
 ```php
-$photo = Photo::find(1)->version(v200x200::class); // get the `v200x200' version of your Photo model
+$photo = Photo::find(1)                      // Photo can be any Eloquent model in your application
+$thumb = $photo->version(v200x200::class);   // Get the `v200x200' version of your $photo
 ```
 
 Here's what is going to happen:
@@ -72,13 +73,31 @@ Here's what is going to happen:
 - The new image will be saved with the same name in a subfolder with the name of your transformation (`v200x200` here)
 - The next time you will request the same version of the same image you will receive the saved version! Build on request + cache!
 
-On the `$photo` object you received, you can retreive information about the new version of the image:
+On the `$thumb` object you received, you can retreive information about the new version of the image:
 
 ```php
-$photo->url() // the url to your image (eg /Photos/v200x200/filename.jpg)
-$photo->relativePath() // path relative to public  (eg Photos/v200x200/filename.jpg)
-$photo->absolutePath() // absolute path. You can perform file operations on this
+$thumb->url() // the url to your image (eg /Photos/v200x200/filename.jpg)
+$thumb->relativePath() // path relative to public  (eg Photos/v200x200/filename.jpg)
+$thumb->absolutePath() // absolute path. You can perform file operations on this
 ```
+
+## Passing Parameters
+
+You may pass any number of parameters when you request a version of an Image:
+
+```php
+$cropped = $photo->version(vCrop::class, 200, 300);
+```
+
+You will receive these values in the `apply()` method of your Transformation class as additional parameters:
+
+```php
+public function apply(\Imagick $image, $width, $height){
+    $image->cropImage($width, $height, 0, 0);
+}
+```
+
+Please note that the the Transformation is executed only if the new image does not exist. If it has been called in the past, then the stored image will be returned instead of creating a new one. s
 
 ## Using Aliases
 
@@ -99,8 +118,8 @@ Now you have the option to use the Transformation class shortname as an alias in
 $photo = Photo::find(1);
 
 // The following are equivalent:
-$thumbnail = $photo->version(Namespace\Of\Transformations\Classes\v200x200::class);
-$thumbnail = $photo->version('v200x200');
+$thumb = $photo->version(Namespace\Of\Transformations\Classes\v200x200::class);
+$thumb = $photo->version('v200x200');
 ```
 
 This is quite usefull when you are using image versions inside your Blade files.
@@ -154,9 +173,10 @@ Morever the return value of the `version()` funtion (instance of [Version](https
 // Decorator pattern applied.
 // You can call any method of your Photo Eloquent model. Example:
 
-$photo->id;							// Get / Set an Eloquent attribute
-$photo->update(['key' => 'value']);	// Call any Eloquent's methods
-$photo->myMehod();					// Call methods that you have defined in the Photo class
+$thumb->user_id;					// Get, Set an Eloquent attribute
+$thumb->update(['key' => 'value']);	// Call any Eloquent's methods
+$thumb->myMehod();					// Call methods that you have defined in the Photo class
+$thumb->object;                     // Instance of the original Photo object 
 ```
 
 You can find more information about the decorator used at [igaster/eloquent-decorator](https://github.com/igaster/eloquent-decorator)
