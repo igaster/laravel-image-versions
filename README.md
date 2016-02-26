@@ -8,7 +8,7 @@ Enchace your models to produce different versions of any image (eg for thumbnail
 
 ## Installation
 
-This package depends on the [intervention](http://image.intervention.io) package to manipulate images. So first you should install [intervention](http://image.intervention.io). Don't forget to publish it's configuration file, we will place some options there!
+This package depends on the [Intervention](http://image.intervention.io) package to manipulate images. So first you should install `Intervention`: [Read the docs](http://image.intervention.io). Don't forget to publish it's configuration file, we will place some options there!
 
 Next you can install this package with:
 
@@ -116,6 +116,7 @@ You can swap your local filesystem with any remote file system such as the Amazo
 - First define your filesystem disk in your 'filesystems.php' configuration file
 - Now copy these options in the 'image.php' configuration file (it was provided by Intervention package):
 
+```php
 'versions' => [
 
     /*
@@ -132,6 +133,7 @@ You can swap your local filesystem with any remote file system such as the Amazo
 
     'root_url' => 'my_bucket.s3-website-eu-west-1.amazonaws.com',
 ]
+```
 
 ## Using Aliases
 
