@@ -8,7 +8,9 @@ Enchace your models to produce different versions of any image (eg for thumbnail
 
 ## Installation
 
-This package depends on the [Intervention](http://image.intervention.io) package to manipulate images. So first you should install `Intervention`: [Read the docs](http://image.intervention.io). Don't forget to publish it's configuration file, we will place some options there!
+This package depends on the [Intervention](http://image.intervention.io) package to manipulate images. 
+
+First you should install `Intervention`: [Read the instructions](http://image.intervention.io). Don't forget to publish it's configuration file, we will place some options there!
 
 Next you can install this package with:
 
