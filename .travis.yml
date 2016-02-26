@@ -5,7 +5,7 @@ php:
 
 sudo: false
 
-before_script:
+before_install:
   - composer self-update
 
 install: 
