@@ -8,8 +8,8 @@ use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Contracts\Queue\QueueableEntity;
 use ArrayAccess;
 use JsonSerializable;
-use Imagick;
 use File;
+use Storage;
 
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
@@ -25,13 +25,15 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       $version->transformationClass = $transformationClass;
       $version->callbacks = $callbacks;
 
-      $path = $version->absolutePath();
+      $path = $version->relativePath();
 
-      if($forceRebuild && file_exists($path)){
-        File::delete($path);
+      $filesystem = $version->getFilesystem();
+
+      if($forceRebuild && $filesystem->has($path)){
+        $filesystem->delete($path);
       }
 
-      if(!file_exists($path))
+      if(!$filesystem->has($path))
         $version->buildNewImage($params);
 
       return $version;
@@ -43,7 +45,8 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       if (class_exists($className))
         return $className;
 
-      if(isset($this->object->transformationNamespace) && !empty($namespace = $this->object->transformationNamespace)){
+      if ($namespace = \Config::get('image.versions.namespace', null)) {
+      // if(isset($this->object->transformationNamespace) && !empty($namespace = $this->object->transformationNamespace)){
         $className =  sprintf("%s\%s",$namespace, $className);
       }
 
@@ -51,6 +54,19 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
         return $className;
 
       throw new \igaster\imageVersions\Exceptions\TransformationNotFound($className);
+    }
+
+    public function getFilesystem(){
+      $disk = \Config::get('image.versions.disk', null);
+
+      if($disk){
+        return Storage::disk($disk);
+      }
+
+      $adapter = new \League\Flysystem\Adapter\Local(public_path());
+      $filesystem = new \League\Flysystem\Filesystem($adapter);
+      return $filesystem;
+
     }
 
     public function versionName(){
@@ -75,21 +91,19 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
     }
 
     public function url(){
-      return '/'.$this->relativePath();
+      $root_url = \Config::get('image.versions.root_url', '');
+      return $root_url.'/'.$this->relativePath();
     }
 
     public function buildNewImage($params = []){        
-      $sourceFile = $this->object->absolutePath();
-      $targetFile = $this->absolutePath();
-      $targetPath = dirname($targetFile);
 
-      $image = new Imagick();
-      $image->readImage($sourceFile);
+      $filesystem = $this->getFilesystem();
+
+      $stream = $filesystem->read($this->object->relativePath());
+      $image = \Image::make($stream);
 
       $transformationClass = $this->className();
       $transformation = new $transformationClass();
-
-
       if (!method_exists($transformation, 'apply')) {
         throw new \igaster\imageVersions\Exceptions\missingApplyMethod($this->versionName());
       }
@@ -102,10 +116,8 @@ class Version implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Que
       $transformation->onSaving($image);
       $transformation->onSaved($this);
 
-      if (!File::isDirectory($targetPath))
-          File::makeDirectory($targetPath, 0777, true);
-      $image->writeImage($targetFile);    
-  	}
-
+      $jpg = (string) $image;
+      $filesystem->write($this->relativePath(), $jpg);
+    }
 
 }

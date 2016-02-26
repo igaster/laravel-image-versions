@@ -10,8 +10,6 @@ class Photo extends Eloquent
 	protected $guarded = [];
 	public $timestamps = false;
 
-    public $transformationNamespace = '';
-
 	public function relativePath(){
 		return $this->filename;
 	}

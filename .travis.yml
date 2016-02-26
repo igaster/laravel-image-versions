@@ -12,7 +12,7 @@ install:
   - travis_retry composer install --no-interaction --prefer-source
 
 script: 
-  - vendor/bin/phpunit --verbose --coverage-clover=coverage.xml
+  - vendor/bin/phpunit tests/LocalTest.php --verbose --coverage-clover=coverage.xml
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

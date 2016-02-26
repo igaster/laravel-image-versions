@@ -2,6 +2,7 @@
 
 use igaster\imageVersions\Tests\TestCase\TestCaseWithDatbase;
 use Orchestra\Testbench\TestCase;
+use Intervention\Image\Image;
 
 use igaster\imageVersions\Tests\App\Photo;
 use igaster\imageVersions\Version;
@@ -10,21 +11,24 @@ use igaster\imageVersions\Tests\App\Transformations\v200x200;
 use igaster\imageVersions\Tests\App\Transformations\vParameters;
 use igaster\imageVersions\Tests\App\Transformations\vMissingMethod;
 
-class ExampleTest extends TestCaseWithDatbase
+class LocalTest extends TestCaseWithDatbase
 {
 
     // -----------------------------------------------
-    //   Global Setup(Run Once)
+    //   add Service Providers & Facades
     // -----------------------------------------------
 
-    public static function setUpBeforeClass() {
-        parent::setUpBeforeClass();
-        // Your Code here...
+    protected function getPackageProviders($app) {
+        return [
+            Intervention\Image\ImageServiceProvider::class,
+        ];
     }
 
-    public static function tearDownAfterClass(){
-        // Your Code here...
-        parent::tearDownAfterClass();
+
+    protected function getPackageAliases($app) {
+        return [
+            'Image' => Intervention\Image\Facades\Image::class
+        ];
     }
 
     // -----------------------------------------------
@@ -35,10 +39,14 @@ class ExampleTest extends TestCaseWithDatbase
     {
         parent::setUp();
 
+        Config::set('image.driver', 'gd');
+
         // set the public path to this directory
         App::bind('path.public', function() {
             return __DIR__.'/public';
         });
+
+        Config::set('filesystems.disks.local.root',  public_path());
 
         // -- Set  migrations
         Schema::create('photos', function ($table) {
@@ -61,10 +69,6 @@ class ExampleTest extends TestCaseWithDatbase
     // -----------------------------------------------
 
     public function test_Setup() {
-        foreach (Photo::all() as $image) {
-            $this->assertFileExists($image->absolutePath());
-        }
-
         File::deleteDirectory(public_path('subfolder/v200x200'));
         File::deleteDirectory(public_path('v200x200'));
         File::deleteDirectory(public_path('vParameters'));
@@ -83,6 +87,11 @@ class ExampleTest extends TestCaseWithDatbase
         $this->assertEquals('v200x200/image1.jpg',              Photo::find(1)->version(v200x200::class)->relativePath());
         $this->assertEquals('subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->relativePath());
 
+        Config::set('image.versions.root_url', 'xxx');
+        $this->assertEquals('xxx/v200x200/image1.jpg',              Photo::find(1)->version(v200x200::class)->url());
+        $this->assertEquals('xxx/subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->url());
+
+        Config::set('image.versions.root_url', '');
         $this->assertEquals('/v200x200/image1.jpg',              Photo::find(1)->version(v200x200::class)->url());
         $this->assertEquals('/subfolder/v200x200/image3.jpg',    Photo::find(3)->version(v200x200::class)->url());
     }
@@ -122,7 +131,8 @@ class ExampleTest extends TestCaseWithDatbase
         $version = $photo->version(v200x200::class);
         $this->assertEquals('igaster\imageVersions\Tests\App\Transformations\v200x200', $version->className());
 
-        $photo->transformationNamespace = 'igaster\imageVersions\Tests\App\Transformations';
+        Config::set('image.versions.namespace','igaster\imageVersions\Tests\App\Transformations');
+
         $version = $photo->version('v200x200');
         $this->assertEquals('igaster\imageVersions\Tests\App\Transformations\v200x200', $version->className());
     }
@@ -151,6 +161,13 @@ class ExampleTest extends TestCaseWithDatbase
         Photo::find(1)->version(vParameters::class, 'Image Created!');
     }
 
+    public function test_Force_rebuild() {
+        File::deleteDirectory(public_path('vParameters'));
+        Photo::find(1)->version(vParameters::class);
+        $this->expectOutputString('Image,Created,Successfuly');
+        Photo::find(1)->rebuildVersion(vParameters::class, 'Image','Created','Successfuly');
+    }
+
     public function test_missing_apply_method() {
         $this->setExpectedException(igaster\imageVersions\Exceptions\missingApplyMethod::class);
         Photo::find(1)->version(vMissingMethod::class);
@@ -159,7 +176,7 @@ class ExampleTest extends TestCaseWithDatbase
     public function test_callback() {
         File::deleteDirectory(public_path('v200x200'));
         $this->expectOutputString('OK');
-        Photo::find(1)->beforeTransformation(function(\Imagick $image){
+        Photo::find(1)->beforeTransformation(function(Image $image){
             echo "OK";
         })->version(v200x200::class);
     }
@@ -168,7 +185,7 @@ class ExampleTest extends TestCaseWithDatbase
     public function test_callback_parameters() {
         File::deleteDirectory(public_path('v200x200'));
         $this->expectOutputString('1,2');
-        Photo::find(1)->beforeTransformation(function(\Imagick $image, $a, $b){
+        Photo::find(1)->beforeTransformation(function(Image $image, $a, $b){
             echo "$a,$b";
         },1,2)->version(v200x200::class);
     }
@@ -176,9 +193,9 @@ class ExampleTest extends TestCaseWithDatbase
     public function test_multiple_callback() {
         File::deleteDirectory(public_path('v200x200'));
         $this->expectOutputString('AB');
-        Photo::find(1)->beforeTransformation(function(\Imagick $image){
+        Photo::find(1)->beforeTransformation(function(Image $image){
             echo "A";
-        })->beforeTransformation(function(\Imagick $image){
+        })->beforeTransformation(function(Image $image){
             echo "B";
         })->version(v200x200::class);
     }

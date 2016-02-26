@@ -1,7 +1,7 @@
 {
     "name": "igaster/laravel-image-versions",
-	"description": "Enchace your models to produce different versions of any image (eg for thumbnail/watermark etc)",
-    "keywords": ["laravel-5.x", "image versions", "image resize", "image crop", "imagick"],
+	"description": "Enchace your models to produce different versions of any image (eg for thumbnail/watermark etc). Supports S3",
+    "keywords": ["laravel-5.x", "image versions", "image resize", "crop", "intervention", "s3", "aws", "thumbnails"],
     "license": "MIT",
     "homepage": "https://github.com/igaster/laravel-image-versions.git",
     "authors": [
@@ -13,13 +13,16 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/support": "5.*",
-        "igaster/eloquent-decorator": "~1.0"
+        "igaster/eloquent-decorator": "~1.0",
     },
     "require-dev": {
         "illuminate/database": "~5.2",
         "orchestra/testbench": "~3.0", 
         "vlucas/phpdotenv": "~2.0",
-        "phpunit/phpunit": "~4.0"
+        "phpunit/phpunit": "~4.0",
+        "aws/aws-sdk-php": "^3.15",
+        "league/flysystem-aws-s3-v3": "^1.0",
+        "intervention/image": "^2.3"
     },     
     "autoload": {
         "psr-4" : {

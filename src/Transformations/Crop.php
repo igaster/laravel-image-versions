@@ -1,20 +1,19 @@
 <?php namespace igaster\imageVersions\Transformations;
 
-// Helper Transformation: Scales + Crops an image to fit in a Rectangle
+// Helper Transformation: Scales + Distorts an image to fit in a Rectangle
 // Overide this and define $widht and $height
 
 use Intervention\Image\Image;
 
-class ScaleAndCrop extends \igaster\imageVersions\AbstractTransformation{
+class Crop extends \igaster\imageVersions\AbstractTransformation{
 
     // Redifine dimensions in child class
     public $width = 100;
     public $height = 100;
 
+    // Perform the manipulation
     public function apply(Image $image){
-        $image->fit($this->width, $this->height, function ($constraint) {
-            $constraint->upsize();
-        });
+        $image->crop($this->width, $this->height);
     }
 
 }

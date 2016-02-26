@@ -4,9 +4,13 @@
 
 ## How it works
 
-Enchace your models to produce different versions of any image (eg for thumbnail/watermark etc). Produced images are saved in separate subfolders for future requests. You only have to define some operations on the Image. File management and caching are handled for you.
+Enchace your models to produce different versions of any image (eg for thumbnail/watermark etc). Produced images are saved in separate subfolders for future requests. You only have to define some operations on the Image. File management and caching are handled for you. You can use any local or remote filesystem you need!
 
 ## Installation
+
+This package depends on the [intervention](http://image.intervention.io) package to manipulate images. So first you should install [intervention](http://image.intervention.io). Don't forget to publish it's configuration file, we will place some options there!
+
+Next you can install this package with:
 
     composer require "igaster/laravel-image-versions"
 
@@ -38,22 +42,28 @@ class Photo extends Eloquent {
 
 ```
 
+PS: If you are using Amazon S3 (or any other flysystem disk) then this method should return the path to your file from your disk's root.
+
 #### 2. Create your Transformation classes:
 
-You can create any number of versions of a single image. To define a version you have to create a  Transformation class that extends the `AbstractTransformation` and implement the `apply()` method. You will receive an Imagick object, where you can perform any operations to your image.
+You can create any number of versions of a single image. To define a version you have to create a  Transformation class that extends the `AbstractTransformation` and implement the `apply()` method. You will receive an `Intervention\Image\Image` object, where you can perform any operations.
 
 A short example of a trasformation class:
 
 ```php
+use Intervention\Image\Image;
+
 class v200x200 extends \igaster\imageVersions\AbstractTransformation{
 
-    public function apply(\Imagick $image){
-        // Perform any operations on the $image object
-        $image->thumbnailImage(200, 200);
+    public function apply(Image $image){
+        // Perform here any operations on the $image object, eg:
+        $image->crop(200, 200);
     }
 
 }
 ```
+
+The `Intervention` package provides a rich API to edit your images. Refer to their documentation for a [list of all available methods](http://image.intervention.io)
 
 #### 3. Request an image version
 
@@ -76,7 +86,7 @@ On the `$thumb` object you received, you can retreive information about the new 
 ```php
 $thumb->url() // the url to your image (eg /Photos/v200x200/filename.jpg)
 $thumb->relativePath() // path relative to public  (eg Photos/v200x200/filename.jpg)
-$thumb->absolutePath() // absolute path. You can perform file operations on this
+$thumb->absolutePath() // absolute path (valid only on local filesystem). You can perform file operations on it
 ```
 
 If you want to force rebuilding the new image even if it has been cached before you can call `rebuildVersion()` instead of `version()` 
@@ -92,25 +102,55 @@ $cropped = $photo->version(vCrop::class, 200, 300);
 You will receive these values in the `apply()` method of your Transformation class as additional parameters:
 
 ```php
-public function apply(\Imagick $image, $width, $height){
+public function apply(Image $image, $width, $height){
     $image->cropImage($width, $height, 0, 0);
 }
 ```
 
 Please note that the the Transformation is executed only if the new image does not exist. If it has been called in the past, then the stored image will be returned instead of creating a new one. s
 
+## Using Flysystem disks (eg Amazon S3)
+
+You can swap your local filesystem with any remote file system such as the Amazon S3.
+
+- First define your filesystem disk in your 'filesystems.php' configuration file
+- Now copy these options in the 'image.php' configuration file (it was provided by Intervention package):
+
+'versions' => [
+
+    /*
+    |  Set the disk that you want to use. Can be any disk defined in 'filesystems.php' 
+    |  Leave null to default to your public folder.
+    */
+
+    'disk' => 's3',
+
+    /*
+    |  You can set here the endpoind of you filesystem. This will be used to get a url() for your
+    |  images. Leave null if you are saving localy
+    */
+
+    'root_url' => 'my_bucket.s3-website-eu-west-1.amazonaws.com',
+]
+
 ## Using Aliases
 
-You can define the default namespace of your Transformation classes in your model:
+You can define the default namespace of your Transformation classes in `image.php` configuration file:
 
 ```php
-class Photo extends Eloquent
-{
-	use \igaster\imageVersions\ImageVersionsTrait;
+'versions' => [
 
-    public $transformationNamespace = 'Namespace\Of\Transformations\Classes';
-}
+    /*
+    |  This is the namespace of your Transformation classes. If you define this then
+    |  you can either use the full transformation's class name, or the short class name
+    |  when you are calling the version() method. Default: null
+    */
+
+    'namespace' => Namespace\Of\Transformations\Classes,
+]
+
 ```
+
 
 Now you have the option to use the Transformation class shortname as an alias instead of the full nampespaced classname. eg:
 
@@ -135,13 +175,11 @@ class v200x200 extends \igaster\imageVersions\AbstractTransformation{
      * This callback is executed before the image is saved. You can override this
      * if you want to prepere the image for saving (eg set file format etc). 
      * 
-     * @param  Imagick $image
+     * @param  \Intervention\Image\Image $image
      * @return null
      */	
-    public function onSaving(Imagick $image){
-      $image->setImageCompressionQuality(66);
-      $image->setImageCompression(\Imagick::COMPRESSION_JPEG);
-      $image->stripImage();    	
+    public function onSaving(\Intervention\Image\Image $image){
+        $image->encode('jpg', 75);  
     }
 
 	/**
@@ -154,9 +192,10 @@ class v200x200 extends \igaster\imageVersions\AbstractTransformation{
      */	
     public function onSaved(Version $image){
     	/* examples:
-			$image->relativePath();  // new image relative path , alias to $image->url()
-			$image->absolutePath();  // new image absolute
 			$image->id;              // Access your original Eloquent model's attributes/methods
+            $image->url();           // created image's url
+            $image->relativePath();  // created image's relative path
+            $image->absolutePath();  // created image's absolute (valid only on local filesystem)
 		*/
     }
 
@@ -170,8 +209,8 @@ Take a look at the [AbstractTransformation](https://github.com/igaster/laravel-i
 You can define any number of callback functions that will be executed BEFORE your Transformation is applied. To set your callbacks call `beforeTransformation()` from your Eloquent model, before calling the `version()` method:
 
 ```php
-$thumb = $photo->beforeTransformation(function(\Imagick $image){
-    $image->cropImage(200, 200, 0, 0);
+$thumb = $photo->beforeTransformation(function(\Intervention\Image\Image $image){
+    $image->crop(200, 200, 0, 0);
 })->version(vGrayscale::class);
 ``` 
 Usefull if you want to peform some preprocessing. You can chain any number of `beforeTransformation()` calls. 
@@ -179,8 +218,8 @@ Usefull if you want to peform some preprocessing. You can chain any number of `b
 Additionaly you can pass your own parameters to your callbacks: 
 
 ```php
-$thumb = $photo->beforeTransformation(function(\Imagick $image, $width, $height){
-    $image->cropImage($width, $height, 0, 0);
+$thumb = $photo->beforeTransformation(function(\Intervention\Image\Image $image, $width, $height){
+    $image->crop($width, $height, 0, 0);
 }, 200, 200)->version(vGrayscale::class);  // Now the crop size is not hardcoded!
 ``` 
 
@@ -199,8 +238,3 @@ $thumb->object;                     // Instance of the original Photo object
 ```
 
 You can find more information about the decorator used at [igaster/eloquent-decorator](https://github.com/igaster/eloquent-decorator)
-
-## ToDo:
-- overide default paths
-- switch to intervention (?)
-- Anything else? Please leave your requests.

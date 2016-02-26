@@ -7,7 +7,7 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          processIsolation="false"
-         stopOnFailure="false"
+         stopOnFailure="true"
          syntaxCheck="false"
 >
     <testsuites>
@@ -15,4 +15,11 @@
             <directory suffix=".php">./tests/</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <env name="S3_KEY"      value="xxx"/>
+        <env name="S3_SECRET"   value="xxx"/>
+        <env name="S3_REGION"   value="xxx"/>
+        <env name="S3_BUCKET"   value="xxx"/>
+        <env name="S3_ENDPOINT" value="xxx"/>
+    </php>    
 </phpunit>
